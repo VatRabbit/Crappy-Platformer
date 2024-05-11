@@ -35,40 +35,36 @@ class Player(pygame.sprite.Sprite):
          
         self.image          = pygame.Surface((32,32))
         self.rect           = pygame.Rect(0,0, 32,32)
-        self.collision_rect = pygame.Rect(0,0,  9,20)
+        self.collision_rect = pygame.Rect(0,0,  12,20)
         self.collision_list = []
-        
-        # handles which direction the sprite should be facing during animations
-        self.reverse = False
-        
+         
         # velocity[0] = left/right, velocity[1] = up/down
         self.velocity     = [0,0]
         self.position     = [0,0]
         
-        self.last_y              = 0.0        
-        
         self.coyote_time         = 0.0
         self.jump_buffer         = 1.0
         self.jump_height_counter = 0.0
-        self.double_jump_ready   = False
-        self.is_grounded         = False
-
-        self.space_bar_released  = True
+        
+        self.reverse            = False
+        self.double_jump_ready  = False
+        self.is_grounded        = False
+        self.space_bar_released = True
 
     def update(self, events, dt, tilemap):
         self.handle_input(events, dt)
         self.collision_list = self.check_collisions(tilemap)
-        
-        # handle self.position[0], left/right movement and check left/right collisions 
-        self.update_x_velocity()
-        self.handle_x_collisions()        
 
         # handle self.position[1], up/down movement and check for up/down collisions
         self.apply_gravity(dt)
         self.update_y_velocity()
         self.check_grounded()
         self.handle_y_collisions()
-        
+                
+        # handle self.position[0], left/right movement and check left/right collisions 
+        self.update_x_velocity()
+        self.handle_x_collisions()        
+
         self.update_player_rect()
         self.coyote_counter(dt)
 
@@ -78,8 +74,13 @@ class Player(pygame.sprite.Sprite):
         self.image = self.animation_states[self.animation_state_manager.get_state()].run(self.reverse, dt)
         display.blit(self.image, self.rect)
 
+
     def update_player_rect(self):
         self.rect.midbottom = self.collision_rect.midbottom
+        if self.reverse:
+            self.rect.x -= 2
+        else:
+            self.rect.x += 1
         
     def apply_gravity(self, dt):
          self.velocity[1] += GRAVITY * dt    
@@ -122,49 +123,57 @@ class Player(pygame.sprite.Sprite):
         for rect in self.collision_list:
             rect.x -= offset_x
             pygame.draw.rect(self.display, (100,100,250), rect)
-
+        
+        '''
+        col_rect = self.collision_rect.copy()
+        col_rect.x -= offset_x
+        pygame.draw.rect(self.display, (250,100,100), col_rect, 1)
+        '''
+        
     def handle_x_collisions(self):
         # max of 8
         tollerance = 8
         # this will help player to run over 1-tile gaps
-        y_tollerance = 8
+        y_tollerance = 5
+        # col is the index of the first rect in self.collision_list we collide with
+        col = self.collision_rect.collidelist(self.collision_list)
         
-        for rect in self.collision_list:
-            if rect.colliderect(self.collision_rect):
-                # check for left collision first
-                # also fudge the y a bit
-                if self.collision_rect.left - tollerance <= rect.right <= self.collision_rect.left + tollerance:
-                    if rect.top < self.collision_rect.bottom < rect.top + y_tollerance:                        
-                        self.position[1] = rect.top 
-                    else:
-                        self.position[0] = rect.right
-                        self.collision_rect.left = self.position[0]
-                        self.velocity[0] = 0
+        if col != -1:
+            # check for left collision first
+            # also fudge the y a bit
+            if self.collision_rect.left - tollerance <= self.collision_list[col].right <= self.collision_rect.left + tollerance:
+                if self.collision_list[col].top < self.collision_rect.bottom < self.collision_list[col].top + y_tollerance:                        
+                    self.position[1] = self.collision_list[col].top 
+                else:
+                    self.position[0] = self.collision_list[col].right
+                    self.collision_rect.left = self.position[0]
+                    self.velocity[0] = 0
 
-                # check for right collision next
-                # also fudge the y a bit        
-                elif self.collision_rect.right + tollerance >= rect.left >= self.collision_rect.right - tollerance:                    
-                    if rect.top < self.collision_rect.bottom < rect.top + y_tollerance:                        
-                        self.position[1] = rect.top 
-                    else:
-                        self.position[0] = rect.left - self.collision_rect.width 
-                        self.collision_rect.left = self.position[0]
-                        self.velocity[0] = 0
+            # check for right collision next
+            # also fudge the y a bit        
+            elif self.collision_rect.right + tollerance >= self.collision_list[col].left >= self.collision_rect.right - tollerance:                    
+                if self.collision_list[col].top < self.collision_rect.bottom < self.collision_list[col].top + y_tollerance:                        
+                    self.position[1] = self.collision_list[col].top 
+                else:
+                    self.position[0] = self.collision_list[col].left - self.collision_rect.width 
+                    self.collision_rect.left = self.position[0]
+                    self.velocity[0] = 0
                 
     def handle_y_collisions(self):        
         tollerance = 8
         
-        for rect in self.collision_list:
-            if rect.colliderect(self.collision_rect):                                
-                if self.collision_rect.bottom + tollerance >= rect.top >= self.collision_rect.bottom - tollerance:
-                    self.position[1] = rect.top
-                    self.collision_rect.bottom = self.position[1]    
+        collision = self.collision_rect.collidelist(self.collision_list)
+        
+        if collision != -1:
+            if self.collision_rect.bottom + tollerance >= self.collision_list[collision].top >= self.collision_rect.bottom - tollerance:
+                self.position[1] = self.collision_list[collision].top                
+                self.collision_rect.bottom = self.position[1]    
                 
-                elif self.collision_rect.top - tollerance <= rect.bottom <= self.collision_rect.top + tollerance:                    
-                    self.position[1] = rect.bottom + self.collision_rect.height
-                    self.collision_rect.bottom = self.position[1]       
-                    self.velocity[1] = 0
-    
+            elif self.collision_rect.top - tollerance <= self.collision_list[collision].bottom <= self.collision_rect.top + tollerance:                    
+                self.position[1] = self.collision_list[collision].bottom + self.collision_rect.height
+                self.collision_rect.bottom = self.position[1]       
+                self.velocity[1] = 0
+            
     def update_x_velocity(self):
         self.position[0] += self.velocity[0]
         self.collision_rect.left = self.position[0]
