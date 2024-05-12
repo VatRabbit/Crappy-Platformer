@@ -30,10 +30,10 @@ class Level:
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,1,1,0,0,1],
+            [1,0,0,0,2,0,0,0,0,0,0,0,0,0,0,1,1,0,1,0,1,0,1,1,0,0,0,1],
             [1,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
             [1,0,0,0,0,0,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
-            [1,0,0,0,0,0,3,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,3,0,0,1,1,1],
+            [1,0,0,0,0,0,3,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,3,0,0,0,0,1],
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
         ]
             
@@ -47,11 +47,11 @@ class Level:
             self.tilemap_rect_list = self.create_tile_rects(sprite_handler, self.display)
             self.bg_image = sprite_handler.bg_sprite
             print(sprite_handler.bg_sprite)
-            self.first_run = False                
+            self.first_run = False
             
         self.camera()              
             
-        self.player.update(events, dt, self.tilemap)
+        self.player.update(events, dt, self.tilemap, self.enemy_group)
         self.enemy_group.update(dt, self.tilemap, self.TILE_SIZE)
         
     def render(self, dt, display):

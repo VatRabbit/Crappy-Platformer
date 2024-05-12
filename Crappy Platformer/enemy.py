@@ -79,7 +79,7 @@ class enemy(pygame.sprite.Sprite):
         
     # just gonna check for x-axis collisions here
     # maybe should combine the two collision check methods eventually    
-    def check_collisions(self, TILE_SIZE):
+    def check_collisions(self, TILE_SIZE):        
         rect = None
         
         if self.reverse:

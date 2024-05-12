@@ -20,8 +20,7 @@ from sys import exit
 
 # this is an issue
 DISPLAY_SCALE = 2
-
-RENDER_FPS    = 90
+RENDER_FPS    = 60
 LOGIC_FPS     = 120
 MAP_FPS       = 120
 TILE_SIZE     = 16

@@ -20,7 +20,7 @@ JUMP_BUFFER_LIMIT    = 0.15
 
 import pygame
 
-from main import TILE_SIZE
+from main import TILE_SIZE, DISPLAY_SCALE
 
 class Player(pygame.sprite.Sprite):
     def __init__(self, display, sprites_idle, sprites_run, sprites_jump):
@@ -51,7 +51,7 @@ class Player(pygame.sprite.Sprite):
         self.is_grounded        = False
         self.space_bar_released = True
 
-    def update(self, events, dt, tilemap):
+    def update(self, events, dt, tilemap, enemy_list):
         self.handle_input(events, dt)
         self.collision_list = self.check_collisions(tilemap)
 
@@ -59,11 +59,11 @@ class Player(pygame.sprite.Sprite):
         self.apply_gravity(dt)
         self.update_y_velocity()
         self.check_grounded()
-        self.handle_y_collisions()
+        self.handle_y_collisions(enemy_list)
                 
         # handle self.position[0], left/right movement and check left/right collisions 
         self.update_x_velocity()
-        self.handle_x_collisions()        
+        self.handle_x_collisions(enemy_list)        
 
         self.update_player_rect()
         self.coyote_counter(dt)
@@ -130,7 +130,7 @@ class Player(pygame.sprite.Sprite):
         pygame.draw.rect(self.display, (250,100,100), col_rect, 1)
         '''
         
-    def handle_x_collisions(self):
+    def handle_x_collisions(self, enemy_list):
         # max of 8
         tollerance = 8
         # this will help player to run over 1-tile gaps
@@ -159,7 +159,7 @@ class Player(pygame.sprite.Sprite):
                     self.collision_rect.left = self.position[0]
                     self.velocity[0] = 0
                 
-    def handle_y_collisions(self):        
+    def handle_y_collisions(self, enemy_list):        
         tollerance = 8
         
         collision = self.collision_rect.collidelist(self.collision_list)
@@ -173,6 +173,12 @@ class Player(pygame.sprite.Sprite):
                 self.position[1] = self.collision_list[collision].bottom + self.collision_rect.height
                 self.collision_rect.bottom = self.position[1]       
                 self.velocity[1] = 0
+        
+        # check for enemy collisions. kill the enemy if we jump on their heads and bounce the player                
+        for enemy in enemy_list:
+            if self.collision_rect.colliderect(enemy.collision_rect):
+                enemy.kill()                
+                self.velocity[1] = JUMP * 2 / 3           
             
     def update_x_velocity(self):
         self.position[0] += self.velocity[0]
