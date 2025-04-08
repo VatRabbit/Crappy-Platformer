@@ -22,7 +22,6 @@ from sys import exit
 DISPLAY_SCALE = 2
 RENDER_FPS    = 60
 LOGIC_FPS     = 120
-MAP_FPS       = 120
 TILE_SIZE     = 16
 SCREEN_WIDTH  = 682
 SCREEN_HEIGHT = 384
@@ -85,10 +84,9 @@ class Game:
         display.blit(self.scaled_display, (0,0))
         pygame.display.flip()        
 
-    def timer(self):
-        current_time = time.time()
-        self.dt = current_time - self.last_update
-        self.last_update = current_time
+    def timer(self):        
+        self.dt = time.time() - self.last_update
+        self.last_update = time.time()
         self.logic_dt  += self.logic_clock.tick()  / 1000.0
         self.render_dt += self.render_clock.tick() / 1000.0  
                 
